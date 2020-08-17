@@ -8,10 +8,11 @@ import time
 import os
 from gtts import gTTS
 from datetime import datetime
-from mutagen.mp3 import MP3
 from pydub import AudioSegment
 from pydub.utils import make_chunks
 
+#--------------------#
+# Copy-Pasted this function from pydub repository
 
 # function to speed-up the playback after creation
 def speedup(seg, playback_speed=1.5, chunk_size=150, crossfade=25):
