@@ -66,31 +66,34 @@ def isTimeFormat(input):
     except ValueError:
         return False
 def process():
+    #The path of the txt file
     inpath = "D:\\transcript\\transcript.txt"
     global outpath
     FMT = '%M:%S'
+    #Path where the created speech audio would be saved
     outpath = "D:\\transcript\\audio.mp3"
     mytext = open(inpath).readlines()
+    #list for storing times
     times = []
+    #storing sentences for later use
     sentences = []
     i = 0
     while i < len(mytext):
         if mytext[i] == '\n':
             i += 1
             continue
-   #     if mytext[i][0].isdigit() and mytext[i][2] == ':':
-        if isTimeFormat(mytext):
+        if mytext[i][0].isdigit() and mytext[i][2] == ':':           
+     #   if isTimeFormat(mytext): #-- this should work but isn't working. check later! 
             times.append(mytext[i].strip())
         else:
             sentences.append(mytext[i].strip())
         i += 1
-    print((sentences),'\n',(times))
+
     global silent_times
     silent_times = []
     global names
     names = []
-    global c
-    c = True
+
     if (not times[0].startswith("00:00")):
         dif1 = datetime.strptime(times[0], FMT) - datetime.strptime("00:00", FMT)
         dif1 = dif1.total_seconds()
@@ -108,10 +111,11 @@ def process():
         names.append(name)
         try:
             gTTS(text=sentences[i], lang='en', slow=False, ).save(name)
-        except:
+        except: # if google isn't responding, raise exception
             print("Connection to server failed. Run again, check your internet connection.")
             return
         fast_sound = AudioSegment.from_file(name)
+        # speed up a little - waiting for gtts to provide a module inside gtts object for speed up! hah
         fast_sound = speedup(fast_sound, 1.25)
         if i < len(times) - 1:
             dif1 = datetime.strptime(times[i + 1], FMT) - datetime.strptime(times[i], FMT)
@@ -126,7 +130,6 @@ def process():
                 # print ("dif1 inside if ", dif1*1000)
 
         fast_sound.export(name)
-        # m = MP3(name)
         playing_time1 = len(fast_sound) / 1000
 
         if i < len(times) - 1:
@@ -136,9 +139,7 @@ def process():
             else:
                 silent_times.append(0)
 
-        # print(i,playing_time1, times[i], silent_times[i])
-
-
+#adding all the files together into one big mp3
 def save():
     try:
 
@@ -155,18 +156,16 @@ def save():
     for i in range(1, len(names) - 1):
         try:
             new += AudioSegment.from_mp3(names[i])
-            # print(silent_times[i+1])
             new += AudioSegment.silent(silent_times[i + 1] * 1000)
         except:
             print("Error opening file: ", names[i])
             time.sleep(3)
     # writing mp3 files is a one liner
-    # print(names[-1])
     new += AudioSegment.from_mp3(names[-1])
     new.export(outpath, format="mp3")
     # remove the temp files created
-    import os
     [os.remove(i) for i in names]
+    #remove the directory also
     os.rmdir("D:\\transcript\\temp")
 
 
